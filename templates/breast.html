@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>OncoPredict AI — Breast Cancer Diagnostic System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark");
+            const btn = document.getElementById("darkToggle");
+            btn.innerHTML = document.body.classList.contains("dark")
+                ? '<i class="fas fa-sun"></i> Light Mode'
+                : '<i class="fas fa-moon"></i> Dark Mode';
+        }
+
+        function showLoader() {
+            document.getElementById("loader").style.display = "flex";
+            document.getElementById("submitBtn").disabled = true;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.field-group').forEach((el, i) => {
+                el.style.animationDelay = `${i * 0.07}s`;
+                el.classList.add('fade-in-up');
+            });
+
+            // Highlight selected model card on page load (after prediction)
+            const selectedVal = document.querySelector('input[name="selected_model"]');
+            if (selectedVal) {
+                const active = document.querySelector(`.model-card[data-model="${selectedVal.value}"]`);
+                if (active) active.classList.add('active');
+            }
+
+            // Model card click handler
+            document.querySelectorAll('.model-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.model-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    document.getElementById('selected_model').value = card.dataset.model;
+                });
+            });
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- BACKGROUND DECOR -->
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+<div class="bg-orb orb-3"></div>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+    <div class="nav-brand">
+        <svg class="nav-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="18" cy="18" r="17" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 2"/>
+            <path d="M11 18C11 14.134 14.134 11 18 11C21.866 11 25 14.134 25 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="4" fill="currentColor" opacity="0.3"/>
+            <circle cx="18" cy="18" r="2" fill="currentColor"/>
+            <path d="M18 7V9M18 27V29M7 18H9M27 18H29" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span>OncoPredict <em>AI</em></span>
+    </div>
+    <button id="darkToggle" class="dark-toggle" onclick="toggleDarkMode()">
+        <i class="fas fa-moon"></i> Dark Mode
+    </button>
+</nav>
+
+<!-- HERO HEADER -->
+<header class="hero">
+    <div class="hero-inner">
+
+        <div class="ribbon">AI-Powered Early Detection</div>
+
+        <div class="hero-content-row">
+            <div class="hero-text-block">
+                <h1 class="hero-title">Breast Cancer<br><span>Diagnostic Intelligence</span></h1>
+                <p class="hero-subtitle">Clinical-grade AI model analyzing tumor cell features to assist early breast cancer screening.</p>
+                <div class="awareness-ribbon-wrap">
+                    <svg viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C9.5 2 7.5 4 7.5 6.5C7.5 9.5 10 11.5 12 13C14 11.5 16.5 9.5 16.5 6.5C16.5 4 14.5 2 12 2Z" fill="#ec4899" opacity="0.85"/>
+                        <path d="M12 13C10 14.5 6 17 5 20C4.2 22.5 5.5 25 7.5 26C9 26.8 10.5 26.5 12 25.5" stroke="#ec4899" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.85"/>
+                        <path d="M12 13C14 14.5 18 17 19 20C19.8 22.5 18.5 25 16.5 26C15 26.8 13.5 26.5 12 25.5" stroke="#ec4899" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.85"/>
+                    </svg>
+                    Breast Cancer Awareness — Early Detection Saves Lives
+                </div>
+            </div>
+
+            <div class="hero-illustration">
+                <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+                    <g opacity="0.22">
+                        <circle cx="30" cy="60" r="18" fill="var(--teal,#0d9488)" stroke="var(--accent,#1a6fc4)" stroke-width="0.8"/>
+                        <circle cx="48" cy="50" r="13" fill="var(--accent-soft,rgba(26,111,196,0.15))" stroke="var(--teal,#0d9488)" stroke-width="0.8"/>
+                        <circle cx="20" cy="78" r="10" fill="var(--teal-soft,rgba(13,148,136,0.12))" stroke="var(--accent,#1a6fc4)" stroke-width="0.8"/>
+                        <circle cx="30" cy="60" r="6" fill="var(--accent,#1a6fc4)" opacity="0.5"/>
+                        <circle cx="48" cy="50" r="4" fill="var(--teal,#0d9488)" opacity="0.5"/>
+                        <circle cx="20" cy="78" r="3" fill="var(--accent,#1a6fc4)" opacity="0.4"/>
+                        <circle cx="168" cy="80" r="16" fill="var(--teal,#0d9488)" stroke="var(--accent,#1a6fc4)" stroke-width="0.8"/>
+                        <circle cx="152" cy="68" r="11" fill="var(--accent-soft,rgba(26,111,196,0.15))" stroke="var(--teal,#0d9488)" stroke-width="0.8"/>
+                        <circle cx="178" cy="95" r="9" fill="var(--teal-soft,rgba(13,148,136,0.12))" stroke="var(--accent,#1a6fc4)" stroke-width="0.8"/>
+                        <circle cx="168" cy="80" r="5" fill="var(--accent,#1a6fc4)" opacity="0.5"/>
+                        <circle cx="152" cy="68" r="3.5" fill="var(--teal,#0d9488)" opacity="0.5"/>
+                        <circle cx="35" cy="220" r="14" fill="var(--teal,#0d9488)" stroke="var(--accent,#1a6fc4)" stroke-width="0.8"/>
+                        <circle cx="50" cy="233" r="10" fill="var(--accent-soft,rgba(26,111,196,0.15))" stroke="var(--teal,#0d9488)" stroke-width="0.8"/>
+                        <circle cx="35" cy="220" r="4.5" fill="var(--accent,#1a6fc4)" opacity="0.5"/>
+                        <circle cx="165" cy="225" r="13" fill="var(--teal,#0d9488)" stroke="var(--accent,#1a6fc4)" stroke-width="0.8"/>
+                        <circle cx="152" cy="238" r="9" fill="var(--accent-soft,rgba(26,111,196,0.15))" stroke="var(--teal,#0d9488)" stroke-width="0.8"/>
+                        <circle cx="165" cy="225" r="4" fill="var(--accent,#1a6fc4)" opacity="0.5"/>
+                    </g>
+                    <path d="M75 30 C65 50, 85 70, 75 90 C65 110, 85 130, 75 150 C65 170, 85 190, 75 210 C65 230, 85 250, 75 265" fill="none" stroke="var(--accent,#1a6fc4)" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+                    <path d="M125 30 C135 50, 115 70, 125 90 C135 110, 115 130, 125 150 C135 170, 115 190, 125 210 C135 230, 115 250, 125 265" fill="none" stroke="var(--teal,#0d9488)" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+                    <line x1="75" y1="30" x2="125" y2="30" stroke="var(--accent,#1a6fc4)" stroke-width="1.4" opacity="0.55" stroke-linecap="round"/>
+                    <line x1="72" y1="60" x2="128" y2="60" stroke="var(--teal,#0d9488)" stroke-width="1.4" opacity="0.55" stroke-linecap="round"/>
+                    <line x1="75" y1="90" x2="125" y2="90" stroke="var(--accent,#1a6fc4)" stroke-width="1.4" opacity="0.55" stroke-linecap="round"/>
+                    <line x1="72" y1="120" x2="128" y2="120" stroke="var(--teal,#0d9488)" stroke-width="1.4" opacity="0.55" stroke-linecap="round"/>
+                    <line x1="75" y1="150" x2="125" y2="150" stroke="var(--accent,#1a6fc4)" stroke-width="1.4" opacity="0.55" stroke-linecap="round"/>
+                    <line x1="72" y1="180" x2="128" y2="180" stroke="var(--teal,#0d9488)" stroke-width="1.4" opacity="0.55" stroke-linecap="round"/>
+                    <line x1="75" y1="210" x2="125" y2="210" stroke="var(--accent,#1a6fc4)" stroke-width="1.4" opacity="0.55" stroke-linecap="round"/>
+                    <line x1="72" y1="240" x2="128" y2="240" stroke="var(--teal,#0d9488)" stroke-width="1.4" opacity="0.55" stroke-linecap="round"/>
+                    <line x1="75" y1="265" x2="125" y2="265" stroke="var(--accent,#1a6fc4)" stroke-width="1.4" opacity="0.55" stroke-linecap="round"/>
+                    <circle cx="75" cy="30"  r="3.5" fill="var(--accent,#1a6fc4)" opacity="0.9"/>
+                    <circle cx="72" cy="60"  r="3"   fill="var(--teal,#0d9488)"  opacity="0.9"/>
+                    <circle cx="75" cy="90"  r="3.5" fill="var(--accent,#1a6fc4)" opacity="0.9"/>
+                    <circle cx="72" cy="120" r="3"   fill="var(--teal,#0d9488)"  opacity="0.9"/>
+                    <circle cx="75" cy="150" r="3.5" fill="var(--accent,#1a6fc4)" opacity="0.9"/>
+                    <circle cx="72" cy="180" r="3"   fill="var(--teal,#0d9488)"  opacity="0.9"/>
+                    <circle cx="75" cy="210" r="3.5" fill="var(--accent,#1a6fc4)" opacity="0.9"/>
+                    <circle cx="72" cy="240" r="3"   fill="var(--teal,#0d9488)"  opacity="0.9"/>
+                    <circle cx="75" cy="265" r="3.5" fill="var(--accent,#1a6fc4)" opacity="0.9"/>
+                    <circle cx="125" cy="30"  r="3.5" fill="var(--teal,#0d9488)"  opacity="0.9"/>
+                    <circle cx="128" cy="60"  r="3"   fill="var(--accent,#1a6fc4)" opacity="0.9"/>
+                    <circle cx="125" cy="90"  r="3.5" fill="var(--teal,#0d9488)"  opacity="0.9"/>
+                    <circle cx="128" cy="120" r="3"   fill="var(--accent,#1a6fc4)" opacity="0.9"/>
+                    <circle cx="125" cy="150" r="3.5" fill="var(--teal,#0d9488)"  opacity="0.9"/>
+                    <circle cx="128" cy="180" r="3"   fill="var(--accent,#1a6fc4)" opacity="0.9"/>
+                    <circle cx="125" cy="210" r="3.5" fill="var(--teal,#0d9488)"  opacity="0.9"/>
+                    <circle cx="128" cy="240" r="3"   fill="var(--accent,#1a6fc4)" opacity="0.9"/>
+                    <circle cx="125" cy="265" r="3.5" fill="var(--teal,#0d9488)"  opacity="0.9"/>
+                    <circle cx="100" cy="148" r="22" fill="none" stroke="var(--accent,#1a6fc4)" stroke-width="1" opacity="0.3" stroke-dasharray="4 3">
+                        <animate attributeName="cy" values="60;210;60" dur="5s" repeatCount="indefinite" calcMode="ease-in-out"/>
+                        <animate attributeName="opacity" values="0.15;0.45;0.15" dur="5s" repeatCount="indefinite"/>
+                    </circle>
+                    <g transform="translate(91,268)" opacity="0.30">
+                        <rect x="5" y="0" width="3.5" height="14" rx="1.5" fill="var(--teal,#0d9488)"/>
+                        <rect x="0" y="5" width="14" height="3.5" rx="1.5" fill="var(--teal,#0d9488)"/>
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-num">95.6%</span>
+                <span class="stat-label">Model Accuracy</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-num">5</span>
+                <span class="stat-label">Biomarkers</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-num">4</span>
+                <span class="stat-label">ML Models</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-num">&lt; 2s</span>
+                <span class="stat-label">Analysis Time</span>
+            </div>
+        </div>
+
+    </div>
+</header>
+
+<!-- MAIN CARD -->
+<main class="main-wrapper">
+    <div class="card">
+
+        <!-- Card Header -->
+        <div class="card-header">
+            <div class="card-header-icon">
+                <i class="fas fa-microscope"></i>
+            </div>
+            <div>
+                <h2>Enter Tumor Biomarkers</h2>
+                <p>Input the fine-needle aspirate (FNA) measurement values below</p>
+            </div>
+        </div>
+
+        <!-- INFO STRIP -->
+        <div class="info-strip">
+            <i class="fas fa-circle-info"></i>
+            Values are sourced from the Wisconsin Breast Cancer Dataset (WBCD) biopsy measurements.
+        </div>
+
+        <!-- FORM -->
+        <form action="/predict" method="POST" onsubmit="showLoader()">
+
+            <!-- ══════════════════════════════════════
+                 MODEL SELECTOR SECTION
+            ═══════════════════════════════════════ -->
+            <div class="model-selector-section">
+                <div class="model-selector-label">
+                    <i class="fas fa-brain"></i>
+                    Select AI Model
+                </div>
+                <p class="model-selector-hint">Choose the machine learning algorithm to run your diagnosis</p>
+
+                <div class="model-cards-grid">
+
+                    <div class="model-card {% if selected_model == 'ensemble' or not selected_model %}active{% endif %}" data-model="ensemble">
+                        <div class="model-card-icon" style="background:rgba(26,111,196,0.10);color:var(--accent);">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="model-card-body">
+                            <span class="model-card-name">Ensemble</span>
+                            <span class="model-card-desc">Voting Classifier — highest accuracy</span>
+                        </div>
+                        <span class="model-card-badge">Recommended</span>
+                    </div>
+
+                    <div class="model-card {% if selected_model == 'logistic' %}active{% endif %}" data-model="logistic">
+                        <div class="model-card-icon" style="background:rgba(13,148,136,0.10);color:var(--teal);">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="model-card-body">
+                            <span class="model-card-name">Logistic Regression</span>
+                            <span class="model-card-desc">Fast & interpretable baseline</span>
+                        </div>
+                    </div>
+
+                    <div class="model-card {% if selected_model == 'gradient' %}active{% endif %}" data-model="gradient">
+                        <div class="model-card-icon" style="background:rgba(234,179,8,0.10);color:#ca8a04;">
+                            <i class="fas fa-fire-flame-curved"></i>
+                        </div>
+                        <div class="model-card-body">
+                            <span class="model-card-name">Gradient Boosting</span>
+                            <span class="model-card-desc">Iterative ensemble learning</span>
+                        </div>
+                    </div>
+
+                    <div class="model-card {% if selected_model == 'forest' %}active{% endif %}" data-model="forest">
+                        <div class="model-card-icon" style="background:rgba(22,163,74,0.10);color:#16a34a;">
+                            <i class="fas fa-tree"></i>
+                        </div>
+                        <div class="model-card-body">
+                            <span class="model-card-name">Random Forest</span>
+                            <span class="model-card-desc">Bagged decision trees</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Hidden input carries the chosen model to Flask -->
+                <input type="hidden" id="selected_model" name="selected_model"
+                       value="{{ selected_model if selected_model else 'ensemble' }}">
+            </div>
+            <!-- ══ end model selector ══ -->
+
+            <div class="fields-grid">
+
+                <div class="field-group">
+                    <label for="mean_radius">
+                        <i class="fas fa-circle-dot field-icon"></i>
+                        Mean Radius
+                    </label>
+                    <div class="input-wrap">
+                        <input type="number" step="any" id="mean_radius" name="mean_radius"
+                               placeholder="e.g. 14.13" required>
+                        <span class="unit-badge">μm</span>
+                    </div>
+                    <span class="field-hint">Mean of distances from center to perimeter</span>
+                </div>
+
+                <div class="field-group">
+                    <label for="mean_texture">
+                        <i class="fas fa-layer-group field-icon"></i>
+                        Mean Texture
+                    </label>
+                    <div class="input-wrap">
+                        <input type="number" step="any" id="mean_texture" name="mean_texture"
+                               placeholder="e.g. 19.27" required>
+                        <span class="unit-badge">σ</span>
+                    </div>
+                    <span class="field-hint">Standard deviation of grayscale values</span>
+                </div>
+
+                <div class="field-group">
+                    <label for="mean_perimeter">
+                        <i class="fas fa-draw-polygon field-icon"></i>
+                        Mean Perimeter
+                    </label>
+                    <div class="input-wrap">
+                        <input type="number" step="any" id="mean_perimeter" name="mean_perimeter"
+                               placeholder="e.g. 91.97" required>
+                        <span class="unit-badge">μm</span>
+                    </div>
+                    <span class="field-hint">Mean size of the core tumor boundary</span>
+                </div>
+
+                <div class="field-group">
+                    <label for="mean_area">
+                        <i class="fas fa-expand field-icon"></i>
+                        Mean Area
+                    </label>
+                    <div class="input-wrap">
+                        <input type="number" step="any" id="mean_area" name="mean_area"
+                               placeholder="e.g. 654.9" required>
+                        <span class="unit-badge">μm²</span>
+                    </div>
+                    <span class="field-hint">Mean surface area of the cell nuclei</span>
+                </div>
+
+                <div class="field-group field-group--full">
+                    <label for="mean_smoothness">
+                        <i class="fas fa-wave-square field-icon"></i>
+                        Mean Smoothness
+                    </label>
+                    <div class="input-wrap">
+                        <input type="number" step="any" id="mean_smoothness" name="mean_smoothness"
+                               placeholder="e.g. 0.09675" required>
+                        <span class="unit-badge">ratio</span>
+                    </div>
+                    <span class="field-hint">Local variation in radius lengths (0–1)</span>
+                </div>
+
+            </div>
+
+            <button type="submit" id="submitBtn" class="submit-btn">
+                <i class="fas fa-dna"></i>
+                Run AI Diagnosis
+                <i class="fas fa-arrow-right btn-arrow"></i>
+            </button>
+
+        </form>
+
+        <!-- LOADER -->
+        <div class="loader" id="loader">
+            <div class="loader-pulse">
+                <div class="pulse-ring"></div>
+                <i class="fas fa-heartbeat loader-icon"></i>
+            </div>
+            <p>Analyzing biomarkers<span class="dots"><span>.</span><span>.</span><span>.</span></span></p>
+        </div>
+
+        <!-- RESULT -->
+        {% if prediction_text %}
+        <div class="result-card {{ style }}">
+            <div class="result-header">
+                {% if style == 'malignant' %}
+                <div class="result-icon-wrap malignant-icon">
+                    <i class="fas fa-triangle-exclamation"></i>
+                </div>
+                {% else %}
+                <div class="result-icon-wrap benign-icon">
+                    <i class="fas fa-shield-heart"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <div class="result-label">
+                        Diagnosis Result
+                        {% if model_label %}
+                        &nbsp;·&nbsp; <span class="result-model-used"><i class="fas fa-microchip"></i> {{ model_label }}</span>
+                        {% endif %}
+                    </div>
+                    <h3 class="result-title">{{ prediction_text }}</h3>
+                </div>
+            </div>
+
+            <!-- Risk meter -->
+            <div class="risk-meter-wrap">
+                <div class="risk-meter-label">
+                    <span>Cancer Risk Score</span>
+                    <strong>{{ risk }}%</strong>
+                </div>
+                <div class="risk-track">
+                    <div class="risk-fill {{ style }}" style="width: {{ risk }}%"></div>
+                </div>
+                <div class="risk-scale">
+                    <span>Low</span><span>Moderate</span><span>High</span>
+                </div>
+            </div>
+
+            <div class="advice-box">
+                <p>{{ advice_text }}</p>
+            </div>
+
+            {% if style == 'malignant' %}
+            <div class="emergency-strip">
+                <i class="fas fa-phone-volume"></i>
+                Contact your oncologist or nearest cancer center immediately.
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- SIDE INFO PANEL -->
+    <aside class="side-panel">
+        <div class="side-card">
+            <h3><i class="fas fa-stethoscope"></i> About This Tool</h3>
+            <p>This system uses an ensemble machine learning model trained on the Wisconsin Breast Cancer Dataset to classify tumors as benign or malignant.</p>
+        </div>
+        <div class="side-card">
+            <h3><i class="fas fa-robot"></i> Available Models</h3>
+            <ul>
+                <li><strong>Ensemble</strong> — Combines all three models for best accuracy</li>
+                <li><strong>Logistic Regression</strong> — Simple, fast, and interpretable</li>
+                <li><strong>Gradient Boosting</strong> — Handles complex patterns well</li>
+                <li><strong>Random Forest</strong> — Robust to overfitting</li>
+            </ul>
+        </div>
+        <div class="side-card">
+            <h3><i class="fas fa-ribbon"></i> Breast Cancer Facts</h3>
+            <ul>
+                <li>1 in 8 women are diagnosed in their lifetime</li>
+                <li>Early detection increases survival rate to over 99%</li>
+                <li>Regular mammograms recommended after age 40</li>
+            </ul>
+        </div>
+        <div class="side-card side-card--alert">
+            <h3><i class="fas fa-circle-exclamation"></i> Medical Disclaimer</h3>
+            <p>This tool is for <strong>educational and research purposes only</strong>. Always consult a licensed physician for medical decisions.</p>
+        </div>
+    </aside>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <svg class="nav-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="18" cy="18" r="17" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 2"/>
+                <path d="M11 18C11 14.134 14.134 11 18 11C21.866 11 25 14.134 25 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="18" cy="18" r="4" fill="currentColor" opacity="0.3"/>
+                <circle cx="18" cy="18" r="2" fill="currentColor"/>
+            </svg>
+            <div>
+                <strong>OncoPredict AI</strong>
+                <span>© 2026 Dikachi Baron</span>
+            </div>
+        </div>
+        <p class="footer-disclaimer">
+            <i class="fas fa-shield-halved"></i>
+            AI Medical Diagnostic System — For educational use only. Not a clinical diagnostic device.
+        </p>
+        <div class="social-icons">
+            <a href="https://www.facebook.com/share/18H6wLY1fW/" target="_blank" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="https://x.com/Baron_dikachi" target="_blank" aria-label="Twitter/X">
+                <i class="fab fa-x-twitter"></i>
+            </a>
+            <a href="https://www.linkedin.com/in/dikachi-baron-a4a380356" target="_blank" aria-label="LinkedIn">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
